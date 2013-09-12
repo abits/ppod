@@ -1,4 +1,39 @@
-#!/bin/env python
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+# ppod.py - download podcast episodes
+#
+# Copyright (C) 2013 Christoph Martel
+#
+# This program is free software; you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License as published by the 
+# Free Software Foundation; either version 3 of the License, or (at your 
+# option) any later version.
+# This program is distributed in the hope that it will be useful, but 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License 
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+'''
+:mod:`ppod` -- Download podcasts
+================================
+
+.. module:: ppd
+   :platform: Unix
+   :synopsis: Download podcasts episodes.
+.. moduleauthor:: Christoph Martel <chris@codeways.org>
+
+Ppod reads feed information from an opml file called ``subscriptions.opml``.
+It downloads the latest episode of each podcast defined in that file.  Ppod
+renames the downloaded audio files using their publication date and updates
+their mp3 tag information.  Download progress is displayed in a curses window.
+
+Use this program at your own risk!
+
+Usage: ./ppod.py
+'''
 
 import xml.etree.ElementTree as ET
 import feedparser
