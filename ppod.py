@@ -11,17 +11,26 @@ import re
 import curses
 import locale
 
+# some intial settings for curses
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
-tree = ET.parse('subscriptions.opml')
-root = tree.getroot()
 scr_line = 0
+stdscr = None
 
+# config
 DOWNLOAD_EPISODES_COUNT = 1
+OPML_FILE = 'subscriptions.opml'
+
 
 def import_feeds():
-    """docstring for import_feeds"""
+    """Extract feed url and titles from opml file.
+    
+    :returns: list of dicts with feed info
+    :rtype: list
+    """
 
+    tree = ET.parse(OPML_FILE)
+    root = tree.getroot()
     pod_feeds = []
     for i in root.findall(".//outline"):
         if 'xmlUrl' in i.attrib:
@@ -30,11 +39,25 @@ def import_feeds():
             pod_feeds.append(pod_feed)
     return pod_feeds
 
+
 def parse_feed(feed_url):
-    feed  = feedparser.parse(feed_url)
+    """Parse feed with feedparser.
+
+    :param feed_url: str
+    :returns: parsed feed 
+    :rtype: dict
+    """
+    feed = feedparser.parse(feed_url)
     return feed
 
+
 def get_episode_infos(feed):
+    """Extract episode info from feed,
+
+    :param feed: str
+    :returns: episode information
+    :rtype: list
+    """
     pod_infos = []
     for entry in range(DOWNLOAD_EPISODES_COUNT):
         pod_info = {}
@@ -49,69 +72,105 @@ def get_episode_infos(feed):
                     break
         except IndexError:
             continue
-        pod_info['episode_title'] =  fd['entries'][entry]['title']
-        pod_info['episode_date'] =  fd['entries'][entry]['published']
+        pod_info['episode_title'] = fd['entries'][entry]['title']
+        pod_info['episode_date'] = fd['entries'][entry]['published']
         pod_info['feed_title'] = fd['feed']['title']
         pod_infos.append(pod_info)
     return pod_infos
 
+
 def generate_filename(episode_info):
-    """docstring for generate_filename"""
-    date =  dateutil.parser.parse(episode_info['episode_date'])
+    """Construct filename for download from episode data.
+    
+    :param episode_info: dict
+    :returns: filename
+    :rtype: str
+    """
+    date = dateutil.parser.parse(episode_info['episode_date'])
     title = '_'.join(episode_info['feed_title'].split())
     title = clean_string(title)
-    filename = '%04d%02d%02d_%s.mp3' % (date.year, date.month, date.day,
-            title)
-    return filename 
+    filename = '%04d%02d%02d_%s.mp3' % (date.year, date.month, date.day, title)
+    return filename
+
 
 def show_progress(count, block_size, total):
-    """docstring for show_progress"""
+    """Display progress in percent of download size in curses window.
+    
+    :param count: block count
+    :param block_size: block size in byte
+    :param total: total size of chunk in byte
+    """
     total_blocks = math.ceil(total / block_size)
     percent_progress = (count / total_blocks) * 100
     msg = '%d%%' % percent_progress
     stdscr.addstr(scr_line, 70, msg)
     stdscr.refresh()
 
+
 def update_tag(filename, episode_info):
-    """docstring for update_tag"""
+    """Update mp3 tag information from episode data.
+    
+    :param filename: str
+    :param episode_info: dict
+    """
     audiofile = eyed3.load(filename)
-    date =  dateutil.parser.parse(episode_info['episode_date'])
+    date = dateutil.parser.parse(episode_info['episode_date'])
     orig_date = eyed3.core.Date(year=date.year, month=date.month, day=date.day)
     if not audiofile.tag:
         tag = eyed3.id3.tag.Tag()
         tag.artist = episode_info['feed_title']
         tag.album = episode_info['feed_title']
-        tag.title =  episode_info['episode_title']
+        tag.title = episode_info['episode_title']
         tag.original_release_date = orig_date
         tag.genre = u'Podcast'
         tag.save(filename, version=eyed3.id3.ID3_V2_3)
     else:
         audiofile.tag.artist = episode_info['feed_title']
         audiofile.tag.album = episode_info['feed_title']
-        audiofile.tag.title =  episode_info['episode_title']
+        audiofile.tag.title = episode_info['episode_title']
         audiofile.tag.date = episode_info['episode_date']
         audiofile.tag.genre = u'Podcast'
         audiofile.tag.save()
 
+
 def clean_string(string):
+    """Remove certain characters from string.
+
+    :param string: str
+    :returns: cleaned string
+    :rtype: str
+    """
     string = re.sub('[^\w\-_\.]', '_', string)
     string = re.sub('__', '_', string)
     string = re.sub('__', '_', string)
     string = string.strip('_')
     return string
 
+
 def generate_dirname(episode_info):
-    """docstring for generate_dirname"""
+    """Construct download dir for feed from episode data.
+    
+    :param episode_info: dict
+    :returns: dir name
+    :rtype: str
+    """
     title = '_'.join(episode_info['feed_title'].split())
     dirname = clean_string(title)
-    return dirname 
+    return dirname
+
 
 def download_episode(episode, target):
-    """docstring for download_episode"""
+    """Save episode audio file to disk and update mp3 tag."""
     urllib.urlretrieve(episode['episode_url'], target, show_progress)
     update_tag(target, episode)
 
+
 def init_curses():
+    """Initialize curses window.
+
+    :returns: default screen
+    :rtype: curses window
+    """
     stdscr = curses.initscr()
     curses.noecho()
     curses.cbreak()
@@ -119,27 +178,43 @@ def init_curses():
     stdscr.keypad(1)
     return stdscr
 
-stdscr = init_curses()
 
 def end_curses(stdscr):
+    """Reset terminal.
+    
+    :param stdscr: curses window
+    """
+
     curses.nocbreak()
     stdscr.keypad(0)
     curses.echo()
     curses.endwin()
 
+
 def display_dl_msg(episode):
+    """Display downloaded episode info in curses window.
+    
+    :param episode: dict
+    """
     msg = u'%s: %s' % (episode['feed_title'], episode['episode_title'])
     stdscr.addnstr(scr_line, 0, msg, 60)
     stdscr.refresh()
 
+
 def display_complete_msg(episode):
-    """docstring for display_complete_message"""
+    """Display episode info for completed download.
+    
+    :param episode: dict
+    """
     msg = u'%s: %s' % (episode['feed_title'], episode['episode_title'])
     stdscr.addnstr(scr_line, 0, msg, 60)
     stdscr.addstr(scr_line, 70, 'OK  ')
     stdscr.refresh()
 
+
+# main application
 if __name__ == '__main__':
+    stdscr = init_curses()
     feeds = import_feeds()
     for idx, feed in enumerate(feeds):
         scr_line = idx
@@ -152,7 +227,7 @@ if __name__ == '__main__':
             if not os.path.exists(directory):
                 os.makedirs(directory)
             if not os.path.exists(target):
-                display_dl_msg(episode) 
+                display_dl_msg(episode)
                 download_episode(episode, target)
             display_complete_msg(episode)
     end_curses()
