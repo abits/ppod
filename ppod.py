@@ -4,16 +4,16 @@
 #
 # Copyright (C) 2013 Christoph Martel
 #
-# This program is free software; you can redistribute it and/or modify it 
-# under the terms of the GNU General Public License as published by the 
-# Free Software Foundation; either version 3 of the License, or (at your 
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
 # option) any later version.
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details.
 #
-# You should have received a copy of the GNU General Public License 
+# You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 '''
@@ -64,7 +64,7 @@ OPML_FILE = 'subscriptions.opml'
 
 def import_feeds():
     """Extract feed url and titles from opml file.
-    
+
     :returns: list of dicts with feed info
     :rtype: list
     """
@@ -84,7 +84,7 @@ def parse_feed(feed_url):
     """Parse feed with feedparser.
 
     :param feed_url: str
-    :returns: parsed feed 
+    :returns: parsed feed
     :rtype: dict
     """
     feed = feedparser.parse(feed_url)
@@ -121,7 +121,7 @@ def get_episode_infos(feed):
 
 def generate_filename(episode_info):
     """Construct filename for download from episode data.
-    
+
     :param episode_info: dict
     :returns: filename
     :rtype: str
@@ -135,7 +135,7 @@ def generate_filename(episode_info):
 
 def show_progress(count, block_size, total):
     """Display progress in percent of download size in curses window.
-    
+
     :param count: block count
     :param block_size: block size in byte
     :param total: total size of chunk in byte
@@ -149,7 +149,7 @@ def show_progress(count, block_size, total):
 
 def update_tag(filename, episode_info):
     """Update mp3 tag information from episode data.
-    
+
     :param filename: str
     :param episode_info: dict
     """
@@ -189,7 +189,7 @@ def clean_string(string):
 
 def generate_dirname(episode_info):
     """Construct download dir for feed from episode data.
-    
+
     :param episode_info: dict
     :returns: dir name
     :rtype: str
@@ -221,7 +221,7 @@ def init_curses():
 
 def end_curses(stdscr):
     """Reset terminal.
-    
+
     :param stdscr: curses window
     """
 
@@ -233,7 +233,7 @@ def end_curses(stdscr):
 
 def display_dl_msg(episode):
     """Display downloaded episode info in curses window.
-    
+
     :param episode: dict
     """
     msg = u'%s: %s' % (episode['feed_title'], episode['episode_title'])
@@ -243,7 +243,7 @@ def display_dl_msg(episode):
 
 def display_complete_msg(episode):
     """Display episode info for completed download.
-    
+
     :param episode: dict
     """
     msg = u'%s: %s' % (episode['feed_title'], episode['episode_title'])
