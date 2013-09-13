@@ -1,10 +1,5 @@
-:mod:`ppod` -- Download podcasts
-================================
-
-.. module:: ppod
-   :platform: Unix
-   :synopsis: Download podcasts episodes.
-.. moduleauthor:: Christoph Martel <chris@codeways.org>
+`ppod` -- Download podcasts
+===========================
 
 Ppod reads feed information from an opml file called ``subscriptions.opml``.
 It downloads the latest episode of each podcast defined in that file.  Ppod
